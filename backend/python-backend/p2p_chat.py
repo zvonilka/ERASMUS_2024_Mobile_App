@@ -8,7 +8,6 @@ class Peer:
         self.peers = []
 
     def start(self):
-        # Start listening for incoming connections in a new thread
         threading.Thread(target=self.listen_for_connections, daemon=True).start()
 
     def listen_for_connections(self):
