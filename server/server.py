@@ -1,6 +1,7 @@
 import sqlite3
 import hashlib
 import socket
+import websockets
 import threading
 import rsa
 
@@ -39,9 +40,9 @@ def signup_user(c, username, password):
         try:
             cur.execute("INSERT INTO userdata (username, password) VALUES (?, ?)", (username, hashed_password))
             conn.commit()
-            c.send("Sign up successful!".encode())
+            await websocket.send("signup successfull")
         except sqlite3.IntegrityError:
-            c.send("Username already exists!".encode())
+            await websocket.send("username exists")
 
 def login_user(c, username, password):
     """Log in a user by verifying username and password."""
@@ -50,11 +51,10 @@ def login_user(c, username, password):
     with sqlite3.connect("userdata.db") as conn:
         cur = conn.cursor()
         cur.execute("SELECT * FROM userdata WHERE username = ? AND password = ?", (username, hashed_password))
-        
         if cur.fetchone():
-            c.send("Login successful!".encode())
+            await websocket.send("Login successful!")
         else:
-            c.send("Login failed!".encode())
+            await websocket.send("Login failed!")
 
 def search_user(c, search_term):
     """Search for users by username (partial match)."""
@@ -68,48 +68,36 @@ def search_user(c, search_term):
     else:
         response = "No users found with that username."
 
-    c.send(response.encode())
+    await websocket.send(response)
 
-def handle_connection(c):
-    # Send public key
-    c.send(public_key.save_pkcs1(format='PEM'))
+async def handle_connection(websocket, path):
+    await websocket.send(public_key.save_pkcs1(format='PEM').decode())  # Send public key as PEM formatted string
 
-    command = c.recv(1024).decode()
+    command = await websocket.recv()
 
     if command == "signup":
-        username_length = int.from_bytes(c.recv(4), byteorder='big')  # Length of username
-        encrypted_username = c.recv(username_length)
-        username = decrypt_data(encrypted_username)
+        username = await websocket.recv()
+        password = await websocket.recv()
 
-        password_length = int.from_bytes(c.recv(4), byteorder='big')  # Length of password
-        encrypted_password = c.recv(password_length)
-        password = decrypt_data(encrypted_password)
-
-        signup_user(c, username, password)
+        signup_user(websocket, decrypt_data(username), decrypt_data(password))
 
     elif command == "login":
-        username_length = int.from_bytes(c.recv(4), byteorder='big')  # Length of username
-        encrypted_username = c.recv(username_length)
-        username = decrypt_data(encrypted_username)
+        username = await websocket.recv()
+        password = await websocket.recv()
 
-        password_length = int.from_bytes(c.recv(4), byteorder='big')  # Length of password
-        encrypted_password = c.recv(password_length)
-        password = decrypt_data(encrypted_password)
-
-        login_user(c, username, password)
+        login_user(websocket, decrypt_data(username), decrypt_data(password))
 
     elif command == "search":
-        search_term_length = int.from_bytes(c.recv(4), byteorder='big')  # Length of search term
-        encrypted_search_term = c.recv(search_term_length)
-        search_term = decrypt_data(encrypted_search_term)
-        search_user(c, search_term)
+        search_term = await websocket.recv()
+        await search_user(websocket, decrypt_data(search_term))
 
     else:
-        c.send("Invalid command!".encode())
+        await websocket.send("Invalid command!")
+        
 
 if __name__ == "__main__":
     create_database()
-    
-    while True:
-        client, addr = server.accept()
-        threading.Thread(target=handle_connection, args=(client,)).start()
+    start_server = websockets.serve(handle_connection, "localhost", 8000)
+
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
