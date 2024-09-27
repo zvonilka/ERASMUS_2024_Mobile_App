@@ -9,9 +9,9 @@ const rl = readline.createInterface({
 });
 
 // Hardcoded peer configuration
-const localHost = '127.0.0.1'; // Localhost for testing
+const localHost = 'localhost'; // Localhost for testing
 const listeningPort = 8080; // Port for the server to listen
-const sendingHost = '127.0.0.1'; // IP address to send messages to (can be changed to another peer's IP)
+const sendingHost = 'localhost'; // IP address to send messages to (can be changed to another peer's IP)
 const sendingPort = 8080; // Port to send messages to (should match the listening port)
 
 // Create a server to listen for incoming messages

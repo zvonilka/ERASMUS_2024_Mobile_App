@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput, Alert, ScrollView, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import ImageViewer from './components/ImageViewer'; // This will show an image
@@ -8,7 +8,7 @@ import ImageViewer from './components/ImageViewer'; // This will show an image
 const PlaceholderImage = require('./assets/logo.png'); // loads an image
 const Stack = createStackNavigator(); // creates screen navigation
 
-// Custom Button Component
+// button for custom buttons, saves lines
 function Button({ label, onPress }) {
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
@@ -17,7 +17,6 @@ function Button({ label, onPress }) {
   );
 }
 
-// Home Screen with navigation to Dashboard
 function HomeScreen({ navigation }) {
   const handleDashboardPress = () => {
     navigation.navigate('Dashboard');
@@ -36,69 +35,63 @@ function HomeScreen({ navigation }) {
   );
 }
 
-// Dashboard Screen for chatting
 function DashboardScreen() {
+  const [sendMessage, setsendMessage] = useState('');
   const [ws, setWs] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [sendMessage, setSendMessage] = useState('');
 
   useEffect(() => {
     const webSocket = new WebSocket('ws://192.168.214.11:8000'); // Your local server IP
 
     webSocket.onopen = () => {
-      console.log('Connected to the server');
-      setWs(webSocket);
+        console.log('Connected to the server');
+        setWs(webSocket);
     };
 
     webSocket.onmessage = (message) => {
-      console.log(`Received: ${message.data}`);
-      setMessages(prevMessages => [...prevMessages, message.data]); // Add received message
+        console.log(`Received: ${message.data}`);
+        setMessages(prevMessages => [...prevMessages, message.data]); // Add received message
     };
 
     webSocket.onerror = (error) => {
-      console.error(`WebSocket error: ${error.message}`);
+        console.error(`WebSocket error: ${error.message}`);
     };
 
     webSocket.onclose = () => {
-      console.log('Disconnected from server');
+        console.log('Disconnected from server');
     };
 
     return () => {
-      webSocket.close();
+        webSocket.close();
     };
-  }, []);
+}, []);
 
   const handleSendMessage = () => {
     if (ws && sendMessage) {
       ws.send(`${sendMessage}`); // Send message
     } else {
-      Alert.alert('Error', 'WebSocket is not connected or message is empty');
+      Alert.alert('Error', 'WebSocket is not connected or no IP provided');
     }
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.container}>
-        <Text style={styles.tex}>Enter the message:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Message"
-          value={sendMessage}
-          onChangeText={setSendMessage}
-        />
-        <Button label="Send Message" onPress={handleSendMessage} />
-        <Text style={styles.tex}>Messages:</Text>
-        <ScrollView style={styles.scrollContainer}>
-          {messages.map((msg, index) => (
-            <Text style={styles.tex} key={index}>{msg}</Text>
-          ))}
-        </ScrollView>
-      </View>
-    </TouchableWithoutFeedback>
+    <View style={styles.container}>
+      <Text style={styles.tex}>Enter the message:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder=""
+        value={sendMessage}
+        onChangeText={setsendMessage}
+      />
+      <Button label="Send Message" onPress={handleSendMessage} />
+      <Text style={styles.tex}>Messages:</Text>
+      {messages.map((msg, index) => (
+        <Text style={styles.tex} key={index}>{msg}</Text>
+      ))}
+    </View>
   );
 }
 
-// Main App with navigation setup
 export default function App() {
   return (
     <NavigationContainer>
@@ -143,17 +136,5 @@ const styles = StyleSheet.create({
   },
   tex: {
     color: '#f3f3f3',
-  },
-  scrollContainer: {
-    width: 240,
-    maxHeight: 300, // Limit the height of the ScrollView
-  },
-  imageContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  footerContainer: {
-    flex: 1,
   }
 });
