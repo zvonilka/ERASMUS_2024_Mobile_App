@@ -2,24 +2,24 @@ const WebSocket = require('ws');
 
 const wss = new WebSocket.Server({ port: 8000 });
 
-const clients = []; // Array to store connected clients
+const clients = []; // list of connected users
 
 wss.on('connection', (ws) => {
     console.log('New client connected');
     
-    // Assign names to clients
+    // hardcoded names for devices for information
     let clientName = '';
     if (clients.length === 0) {
-        clientName = 'LUKAS'; // First client
+        clientName = 'LUKAS'; // First user
     } else if (clients.length === 1) {
-        clientName = 'TOMAS'; // Second client
+        clientName = 'TOMAS'; // Second user
     } else if (clients.length === 2) {
-        clientName = 'SAHAND'; // Third client
+        clientName = 'SAHAND'; // Third user
     } else {
-        clientName = 'None'; // More than three clients
+        clientName = 'None'; // More than three users
     }
     
-    clients.push({ ws, name: clientName }); // Store client with its name
+    clients.push({ ws, name: clientName }); // save users in memorz
     ws.send(`Welcome ${clientName} to the WebSocket server!`);
 
     const interval = setInterval(() => {
@@ -30,7 +30,7 @@ wss.on('connection', (ws) => {
 
     ws.on('message', (message) => {
         console.log(`Received from ${clientName}: ${message}`);
-        // Broadcast the message to all connected clients
+        // send the message to everzone
         clients.forEach((client) => {
             if (client.ws.readyState === WebSocket.OPEN) {
                 client.ws.send(`${clientName} said: ${message}`);
@@ -41,7 +41,7 @@ wss.on('connection', (ws) => {
     ws.on('close', () => {
         clearInterval(interval);
         console.log(`${clientName} disconnected`);
-        // Remove the client from the list
+        // upon disconnecting delete user from memorz
         clients.splice(clients.indexOf({ ws }), 1);
     });
     

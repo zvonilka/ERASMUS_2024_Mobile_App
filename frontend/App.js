@@ -8,7 +8,7 @@ import ImageViewer from './components/ImageViewer'; // This will show an image
 const PlaceholderImage = require('./assets/logo.png'); // loads an image
 const Stack = createStackNavigator(); // creates screen navigation
 
-// Custom Button Component
+// Custom Buttons creater
 function Button({ label, onPress }) {
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
@@ -17,7 +17,7 @@ function Button({ label, onPress }) {
   );
 }
 
-// Home Screen with navigation to Dashboard
+// home Screen with button that navigates to Dashboard
 function HomeScreen({ navigation }) {
   const handleDashboardPress = () => {
     navigation.navigate('Dashboard');
@@ -36,14 +36,14 @@ function HomeScreen({ navigation }) {
   );
 }
 
-// Dashboard Screen for chatting
+// chats interfec
 function DashboardScreen() {
   const [ws, setWs] = useState(null);
   const [messages, setMessages] = useState([]);
   const [sendMessage, setSendMessage] = useState('');
 
   useEffect(() => {
-    const webSocket = new WebSocket('ws://192.168.214.11:8000'); // Your local server IP
+    const webSocket = new WebSocket('ws://192.168.214.11:8000'); // your local server IP for server
 
     webSocket.onopen = () => {
       console.log('Connected to the server');
@@ -52,7 +52,7 @@ function DashboardScreen() {
 
     webSocket.onmessage = (message) => {
       console.log(`Received: ${message.data}`);
-      setMessages(prevMessages => [...prevMessages, message.data]); // Add received message
+      setMessages(prevMessages => [...prevMessages, message.data]); // add received message
     };
 
     webSocket.onerror = (error) => {
@@ -70,7 +70,7 @@ function DashboardScreen() {
 
   const handleSendMessage = () => {
     if (ws && sendMessage) {
-      ws.send(`${sendMessage}`); // Send message
+      ws.send(`${sendMessage}`); // send message
     } else {
       Alert.alert('Error', 'WebSocket is not connected or message is empty');
     }
@@ -98,7 +98,7 @@ function DashboardScreen() {
   );
 }
 
-// Main App with navigation setup
+// first screen with navigation setup
 export default function App() {
   return (
     <NavigationContainer>
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     width: 240,
-    maxHeight: 300, // Limit the height of the ScrollView
+    maxHeight: 300,
   },
   imageContainer: {
     flex: 1,
